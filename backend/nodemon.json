@@ -1,0 +1,9 @@
+{
+  "ignore": [
+    "baileys_auth_info/*",
+    "uploads/*",
+    "duplexdash.db",
+    "duplexdash.db-journal"
+  ],
+  "ext": "js,json"
+}

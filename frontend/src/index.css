@@ -1,0 +1,57 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'Inter', system-ui, sans-serif;
+
+  /* Brand palette */
+  --color-brand-50:  #f0f7ff;
+  --color-brand-100: #e0efff;
+  --color-brand-200: #baddff;
+  --color-brand-300: #7dc0ff;
+  --color-brand-400: #389bff;
+  --color-brand-500: #0f7aff;
+  --color-brand-600: #0058e0;
+  --color-brand-700: #0044b4;
+  --color-brand-800: #003994;
+  --color-brand-900: #002f78;
+
+  /* Surface / dark mode */
+  --color-surface-950: #08090d;
+  --color-surface-900: #0f1117;
+  --color-surface-800: #161923;
+  --color-surface-700: #1e2333;
+  --color-surface-600: #252c40;
+  --color-surface-500: #2f3850;
+
+  /* Accent */
+  --color-accent-flip: #ff6b35;
+  --color-accent-success: #22c55e;
+  --color-accent-warning: #f59e0b;
+  --color-accent-danger:  #ef4444;
+
+  /* Animations */
+  --animate-shimmer: shimmer 2s ease-in-out infinite;
+  --animate-slideUp: slideUp 0.25s ease-out;
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Base resets */
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background-color: var(--color-surface-950);
+  color: white;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
