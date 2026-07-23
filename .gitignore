@@ -55,3 +55,4 @@ backend/duplexdash.db
 # Backend-specific runtime/auth/upload directories
 backend/baileys_auth_info/
 backend/uploads/
+backend/backend/
