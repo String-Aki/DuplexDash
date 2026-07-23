@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { FileText, Layers, Clock, CheckCircle2, XCircle, RefreshCw, Loader2 } from 'lucide-react';
+import { FileText, Layers, Clock, CheckCircle2, XCircle, RefreshCw, Loader2, Printer } from 'lucide-react';
 
 const STATUS_CONFIG = {
-  pending:          { label: 'Pending',        bg: 'bg-brand-500/15',   text: 'text-brand-400',   dot: 'bg-brand-500',   icon: Clock },
-  waiting_for_flip: { label: 'Waiting Flip',   bg: 'bg-orange-500/15',  text: 'text-orange-400',  dot: 'bg-orange-500',  icon: RefreshCw },
-  printed:          { label: 'Printed',         bg: 'bg-green-500/15',   text: 'text-green-400',   dot: 'bg-green-500',   icon: CheckCircle2 },
-  failed:           { label: 'Failed',          bg: 'bg-red-500/15',     text: 'text-red-400',     dot: 'bg-red-500',     icon: XCircle },
+  pending: { label: 'Pending', bg: 'bg-brand-500/15', text: 'text-brand-400', dot: 'bg-brand-500', icon: Clock },
+  waiting_for_flip: { label: 'Waiting Flip', bg: 'bg-orange-500/15', text: 'text-orange-400', dot: 'bg-orange-500', icon: RefreshCw },
+  printed: { label: 'Printed', bg: 'bg-green-500/15', text: 'text-green-400', dot: 'bg-green-500', icon: CheckCircle2 },
+  failed: { label: 'Failed', bg: 'bg-red-500/15', text: 'text-red-400', dot: 'bg-red-500', icon: XCircle },
 };
 
 function formatTime(iso) {
@@ -41,12 +41,11 @@ export default function QueueCard({ job, onPrint }) {
       }`}>
 
       {/* Top color accent */}
-      <div className={`h-0.5 w-full ${
-        job.status === 'pending'          ? 'bg-gradient-to-r from-[--color-brand-500] to-[--color-brand-700]' :
-        job.status === 'waiting_for_flip' ? 'bg-gradient-to-r from-orange-500 to-orange-700' :
-        job.status === 'printed'          ? 'bg-gradient-to-r from-green-500 to-green-700' :
-                                            'bg-gradient-to-r from-red-500 to-red-700'
-      }`} />
+      <div className={`h-0.5 w-full ${job.status === 'pending' ? 'bg-gradient-to-r from-[--color-brand-500] to-[--color-brand-700]' :
+          job.status === 'waiting_for_flip' ? 'bg-gradient-to-r from-orange-500 to-orange-700' :
+            job.status === 'printed' ? 'bg-gradient-to-r from-green-500 to-green-700' :
+              'bg-gradient-to-r from-red-500 to-red-700'
+        }`} />
 
       <div className="p-4 flex gap-4 items-start">
         {/* PDF Icon / Thumbnail placeholder */}
@@ -86,22 +85,33 @@ export default function QueueCard({ job, onPrint }) {
               id={`print-btn-${job.id}`}
               onClick={handlePrint}
               disabled={printing}
-              className={`mt-1 px-4 py-2 text-xs font-bold rounded-xl
-                transition-all duration-150 shadow-lg
+              className={`group mt-1 px-4 py-2 text-xs font-bold rounded-xl
+                transition-all duration-300 shadow-lg relative overflow-hidden
                 text-white uppercase tracking-wider
                 flex items-center gap-1.5
-                ${
-                  printing
-                    ? 'bg-[--color-surface-600] cursor-not-allowed opacity-70 scale-95'
-                    : 'bg-gradient-to-br from-[--color-brand-500] to-[--color-brand-700] hover:from-[--color-brand-400] hover:to-[--color-brand-600] active:scale-95 shadow-[--color-brand-900]/50'
+                ${printing
+                  ? 'bg-[--color-surface-600] cursor-not-allowed opacity-70 scale-95'
+                  : 'bg-gradient-to-br from-[--color-brand-500] to-[--color-brand-700] hover:shadow-xl hover:shadow-[--color-brand-500]/30 hover:-translate-y-0.5 active:scale-95 active:translate-y-0'
                 }`}
             >
-              {printing ? (
-                <>
-                  <Loader2 className="w-3 h-3 animate-spin" />
-                  Printing…
-                </>
-              ) : 'Print'}
+              {/* Subtle animated shine effect on hover */}
+              {!printing && (
+                <div className="absolute inset-0 -translate-x-[150%] bg-gradient-to-r from-transparent via-white/20 to-transparent group-hover:animate-[shimmer_1.5s_infinite]" />
+              )}
+
+              <span className="relative flex items-center gap-1.5">
+                {printing ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    Printing…
+                  </>
+                ) : (
+                  <>
+                    <Printer className="w-3.5 h-3.5 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6" />
+                    Print
+                  </>
+                )}
+              </span>
             </button>
           )}
         </div>

@@ -13,13 +13,16 @@ function initDB() {
     db.exec(`
         CREATE TABLE IF NOT EXISTS PrintJobs (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            remote_jid TEXT, -- To track which WhatsApp user this job belongs to
             filename TEXT NOT NULL,
             filepath TEXT NOT NULL,
             odd_filepath TEXT,
             even_filepath TEXT,
             original_pages INTEGER NOT NULL,
             printed_pages INTEGER NOT NULL,
-            status TEXT NOT NULL DEFAULT 'pending', -- 'pending', 'waiting_for_flip', 'printed', 'failed'
+            copies INTEGER DEFAULT 1,
+            color_mode TEXT DEFAULT 'BW', -- 'BW' or 'Color'
+            status TEXT NOT NULL DEFAULT 'pending', -- 'pending', 'awaiting_preferences', 'awaiting_confirmation', 'printing_odd', 'waiting_for_flip', 'printed', 'failed'
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )
     `);
@@ -28,6 +31,13 @@ function initDB() {
     try {
         db.exec("ALTER TABLE PrintJobs ADD COLUMN odd_filepath TEXT");
         db.exec("ALTER TABLE PrintJobs ADD COLUMN even_filepath TEXT");
+    } catch (e) {
+        // Columns already exist
+    }
+    try {
+        db.exec("ALTER TABLE PrintJobs ADD COLUMN remote_jid TEXT");
+        db.exec("ALTER TABLE PrintJobs ADD COLUMN copies INTEGER DEFAULT 1");
+        db.exec("ALTER TABLE PrintJobs ADD COLUMN color_mode TEXT DEFAULT 'BW'");
     } catch (e) {
         // Columns already exist
     }

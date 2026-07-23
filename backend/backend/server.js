@@ -2,8 +2,14 @@ const express = require('express');
 const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
-const { exec } = require('child_process');
+const { exec: _exec } = require('child_process');
 const db = require('./database');
+const logger = require('./logger');
+
+const exec = (command, callback) => {
+    logger.log(`[SYS EXEC] ${command}`);
+    return _exec(command, callback);
+};
 const { connectToWhatsApp } = require('./whatsapp');
 
 // Fix Directory Crash: Ensure uploads exists synchronously
@@ -51,7 +57,7 @@ app.post('/api/print/:id', (req, res) => {
             // STEP 1: Print Odd Pages
             exec(`lp -d Canon_G3010 "${job.odd_filepath}"`, (err, stdout, stderr) => {
                 if (err) {
-                    console.error("Hardware print error (odd):", err);
+                    logger.error(`Hardware print error (odd): ${err}`);
                     // For safety, even if it fails, we might still proceed or return error. 
                     // Let's assume it succeeds for the sake of the dashboard demo if hardware isn't connected.
                 }
@@ -65,7 +71,7 @@ app.post('/api/print/:id', (req, res) => {
             // STEP 2: Print Even Pages
             exec(`lp -d Canon_G3010 "${job.even_filepath}"`, (err, stdout, stderr) => {
                 if (err) {
-                    console.error("Hardware print error (even):", err);
+                    logger.error(`Hardware print error (even): ${err}`);
                 }
 
                 // Calculate inventory usage
@@ -156,5 +162,5 @@ app.post('/api/settings', (req, res) => {
 // Start the server
 const PORT = 3000;
 app.listen(PORT, () => {
-    console.log(`Backend server listening on port ${PORT}`);
+    logger.log(`Backend server listening on port ${PORT}`);
 });

@@ -1,6 +1,7 @@
 const { PDFDocument } = require('pdf-lib');
 const fs = require('fs').promises;
 const path = require('path');
+const logger = require('./logger');
 
 /**
  * Processes a PDF file for duplex printing.
@@ -28,7 +29,7 @@ async function processPDFForDuplex(inputFilePath, outputFilePath) {
             // Add a blank page to make it even for duplex printing
             pdfDoc.addPage();
             finalPageCount = pdfDoc.getPageCount();
-            console.log(`Smart Padding applied to ${inputFilePath}: Added 1 blank page. Original: ${originalPageCount}, New: ${finalPageCount}`);
+            logger.log(`Smart Padding applied to ${inputFilePath}: Added 1 blank page. Original: ${originalPageCount}, New: ${finalPageCount}`);
         }
 
         // Calculate required physical paper
@@ -69,7 +70,7 @@ async function processPDFForDuplex(inputFilePath, outputFilePath) {
         };
 
     } catch (error) {
-        console.error(`Error processing PDF ${inputFilePath}:`, error);
+        logger.error(`Error processing PDF ${inputFilePath}: ${error}`);
         return {
             success: false,
             error: error.message
