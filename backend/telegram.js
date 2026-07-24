@@ -130,6 +130,7 @@ async function processUserIntent(chatId, text, payload) {
         if (activeJob) {
             await cancelPrintJob();
             db.prepare("UPDATE PrintJobs SET status = 'cancelled' WHERE id = ?").run(activeJob.id);
+            await cleanupJobFiles(activeJob || job);
             return bot.sendMessage(chatId, routeResult.botReply || "🛑 Print job stopped and queue cleared.");
         }
         return bot.sendMessage(chatId, "No active print job to cancel.");
@@ -203,6 +204,7 @@ async function processUserIntent(chatId, text, payload) {
         const totalCost = (activeJob.printed_pages * (activeJob.copies || 1) * price).toFixed(2);
         
         bot.sendMessage(chatId, `✅ Print job complete!\nTotal Cost: LKR ${totalCost}`);
+        await cleanupJobFiles(activeJob);
         return;
     }
 }
@@ -263,6 +265,21 @@ async function trackHardwarePrint(chatId, initialMessage, filePath, copies, expe
             }
         }, 2500);
     });
+}
+
+async function cleanupJobFiles(job) {
+    const filesToDelete = [job.filepath, job.odd_filepath, job.even_filepath].filter(Boolean);
+    
+    for (const file of filesToDelete) {
+        try {
+            await fs.promises.unlink(file);
+            logger.log(`[GARBAGE COLLECTION] Deleted file: ${file}`);
+        } catch (err) {
+            if (err.code !== 'ENOENT') {
+                logger.error(`[GARBAGE COLLECTION] Failed to delete ${file}: ${err.message}`);
+            }
+        }
+    }
 }
 
 module.exports = { connectToTelegram };
