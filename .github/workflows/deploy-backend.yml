@@ -1,0 +1,29 @@
+name: Deploy Backend to Oracle VPS (sentient-node-alpha)
+
+on: 
+  push:
+    branches:
+    - main
+    paths:
+    - 'backend/**'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Deploy Backend to VPS
+      uses: appleboy/ssh-action@1.0.3
+      with:
+        host: ${{ secrets.VPS_HOST }}
+        username: ${{ secrets.VPS_USERNAME }}
+        key: ${{ secrets.VPS_SSH_KEY }}
+        script: |
+        # 1. Navigate to the project directory
+        cd ~/DuplexDash
+        git pull origin main
+        cd backend
+        npm install
+        pm2 restart DuplexDash_Bot   
+
+
