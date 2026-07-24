@@ -1,4 +1,4 @@
-name: Deploy Backend to Oracle VPS
+name: Deploy Backend to Oracle VPS (sentient-node-alpha)
 
 on:
   push:
@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - "backend/**"
+  workflow_dispatch:
 
 jobs:
   deploy:
