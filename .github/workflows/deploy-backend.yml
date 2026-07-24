@@ -1,4 +1,4 @@
-name: Deploy Backend to Oracle VPS (sentient-node-alpha)
+name: Deploy Backend to Oracle VPS
 
 on:
   push:
