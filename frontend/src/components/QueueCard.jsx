@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FileText, Layers, Clock, CheckCircle2, XCircle, RefreshCw, Loader2, Printer } from 'lucide-react';
+import { FileText, Layers, Clock, CheckCircle2, XCircle, RefreshCw, Loader2, Printer, Lock } from 'lucide-react';
 
 const STATUS_CONFIG = {
   pending: { label: 'Pending', bg: 'bg-brand-500/15', text: 'text-brand-400', dot: 'bg-brand-500', icon: Clock },
@@ -16,12 +16,12 @@ function formatTime(iso) {
   return `${Math.floor(min / 60)}h ago`;
 }
 
-export default function QueueCard({ job, onPrint }) {
+export default function QueueCard({ job, onPrint, isLocked = false, queuePosition }) {
   const [printing, setPrinting] = useState(false);
   const physicalSheets = Math.ceil(job.printed_pages / 2);
   const cfg = STATUS_CONFIG[job.status] ?? STATUS_CONFIG.pending;
   const Icon = cfg.icon;
-  const canPrint = job.status === 'pending';
+  const canPrint = job.status === 'pending' && !isLocked;
 
   const handlePrint = async () => {
     if (printing) return;          // hard guard — ignore extra clicks
@@ -79,8 +79,7 @@ export default function QueueCard({ job, onPrint }) {
             {cfg.label}
           </span>
 
-          {/* Print button */}
-          {canPrint && (
+          {canPrint ? (
             <button
               id={`print-btn-${job.id}`}
               onClick={handlePrint}
@@ -113,7 +112,12 @@ export default function QueueCard({ job, onPrint }) {
                 )}
               </span>
             </button>
-          )}
+          ) : job.status === 'pending' ? (
+            <div className="mt-1 px-3 py-1.5 rounded-xl bg-[--color-surface-900] border border-white/5 flex items-center gap-1.5 text-white/30 shadow-inner">
+               <Lock className="w-3.5 h-3.5" />
+               <span className="text-[10px] font-bold uppercase tracking-wider">Pos #{queuePosition}</span>
+            </div>
+          ) : null}
         </div>
       </div>
     </div>

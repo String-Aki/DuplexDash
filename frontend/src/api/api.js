@@ -44,7 +44,8 @@ const MOCK_STATS_SEED = {
   totalPagesPrinted: 1485,
   paperInventory: 312,
   inkLevel: 67.4,
-  pricePerPageLKR: 10,
+  pricePerPageBWLKR: 10,
+  pricePerPageColorLKR: 25,
 };
 
 // Mutable local state so mock actions are reflected immediately
@@ -83,7 +84,8 @@ export async function triggerPrint(jobId) {
   if (job) {
     job.status = 'printed';
     mockStats.totalPagesPrinted += job.printed_pages;
-    mockStats.totalRevenueLKR += job.printed_pages * mockStats.pricePerPageLKR;
+    const price = job.color_mode === 'Color' ? mockStats.pricePerPageColorLKR : mockStats.pricePerPageBWLKR;
+    mockStats.totalRevenueLKR += job.printed_pages * price;
     const sheetsUsed = Math.ceil(job.printed_pages / 2);
     mockStats.paperInventory = Math.max(0, mockStats.paperInventory - sheetsUsed);
     mockStats.inkLevel = Math.max(0, mockStats.inkLevel - job.printed_pages * 0.5);
@@ -110,6 +112,7 @@ export async function updateSettings(payload) {
   if (data) return data;
   if (payload.paper_inventory !== undefined) mockStats.paperInventory = payload.paper_inventory;
   if (payload.ink_level !== undefined) mockStats.inkLevel = payload.ink_level;
-  if (payload.lkr_price_per_page !== undefined) mockStats.pricePerPageLKR = payload.lkr_price_per_page;
+  if (payload.lkr_price_per_page_bw !== undefined) mockStats.pricePerPageBWLKR = payload.lkr_price_per_page_bw;
+  if (payload.lkr_price_per_page_color !== undefined) mockStats.pricePerPageColorLKR = payload.lkr_price_per_page_color;
   return { success: true, message: 'Settings updated (mock).', _mock: true };
 }

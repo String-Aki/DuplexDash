@@ -1,4 +1,4 @@
-const { PDFDocument } = require('pdf-lib');
+const { PDFDocument, PageSizes } = require('pdf-lib');
 const fs = require('fs').promises;
 const path = require('path');
 const logger = require('./logger');
@@ -20,6 +20,16 @@ async function processPDFForDuplex(inputFilePath, outputFilePath) {
         // Load the PDF document
         const pdfDoc = await PDFDocument.load(existingPdfBytes);
         
+        // Force all incoming pages to standard A4 dimensions
+        const pages = pdfDoc.getPages();
+        const a4Width = PageSizes.A4[0];
+        const a4Height = PageSizes.A4[1];
+        
+        for (const page of pages) {
+            const { width, height } = page.getSize();
+            page.scale(a4Width / width, a4Height / height);
+        }
+
         // Get the original number of pages
         const originalPageCount = pdfDoc.getPageCount();
         let finalPageCount = originalPageCount;

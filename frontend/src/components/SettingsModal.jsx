@@ -3,7 +3,8 @@ import { X, Save } from 'lucide-react';
 import { updateSettings } from '../api/api.js';
 
 export default function SettingsModal({ currentStats, onClose, onSaved }) {
-  const [price, setPrice]  = useState(currentStats?.pricePerPageLKR ?? 10);
+  const [priceBW, setPriceBW]  = useState(currentStats?.pricePerPageBWLKR ?? 10);
+  const [priceColor, setPriceColor]  = useState(currentStats?.pricePerPageColorLKR ?? 25);
   const [paper, setPaper]  = useState(currentStats?.paperInventory ?? 500);
   const [ink, setInk]      = useState(currentStats?.inkLevel ?? 100);
   const [saving, setSaving] = useState(false);
@@ -12,7 +13,8 @@ export default function SettingsModal({ currentStats, onClose, onSaved }) {
   const handleSave = async () => {
     setSaving(true);
     await updateSettings({
-      lkr_price_per_page: Number(price),
+      lkr_price_per_page_bw: Number(priceBW),
+      lkr_price_per_page_color: Number(priceColor),
       paper_inventory: Number(paper),
       ink_level: Number(ink),
     });
@@ -40,9 +42,14 @@ export default function SettingsModal({ currentStats, onClose, onSaved }) {
         </div>
 
         {/* Fields */}
-        <Field label="Price per Page (LKR ₨)" id="setting-price">
-          <Input id="setting-price" type="number" value={price} onChange={setPrice} min="0" step="0.5" />
-        </Field>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="B&W Price (LKR ₨)" id="setting-price-bw">
+            <Input id="setting-price-bw" type="number" value={priceBW} onChange={setPriceBW} min="0" step="0.5" />
+          </Field>
+          <Field label="Color Price (LKR ₨)" id="setting-price-color">
+            <Input id="setting-price-color" type="number" value={priceColor} onChange={setPriceColor} min="0" step="0.5" />
+          </Field>
+        </div>
 
         <Field label="Paper Inventory (sheets)" id="setting-paper">
           <Input id="setting-paper" type="number" value={paper} onChange={setPaper} min="0" />

@@ -45,7 +45,15 @@ export default function QueuePage({ jobs, loading, onPrint, onRefresh }) {
       {/* Pending jobs */}
       {!loading && pendingJobs.length > 0 && (
         <Section title="🖨️ Ready to Print" badge={pendingJobs.length} badgeColor="brand">
-          {pendingJobs.map((job) => <QueueCard key={job.id} job={job} onPrint={onPrint} />)}
+          {pendingJobs.map((job, idx) => (
+            <QueueCard 
+              key={job.id} 
+              job={job} 
+              onPrint={onPrint} 
+              isLocked={activeJobs.length > 0 || idx > 0} 
+              queuePosition={idx + 1} 
+            />
+          ))}
         </Section>
       )}
 

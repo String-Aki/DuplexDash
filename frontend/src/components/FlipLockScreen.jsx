@@ -8,13 +8,15 @@ import { Layers, RefreshCw, CheckCheck } from 'lucide-react';
  */
 export default function FlipLockScreen({ job, onConfirm }) {
   const [confirming, setConfirming] = useState(false);
+  const [success, setSuccess] = useState(false);
   const physicalSheets = Math.ceil(job.printed_pages / 2);
 
   const handleConfirm = async () => {
-    if (confirming) return;
+    if (confirming || success) return;
     setConfirming(true);
     try {
       await onConfirm(job.id);
+      setSuccess(true);
     } finally {
       setConfirming(false);
     }
@@ -96,21 +98,28 @@ export default function FlipLockScreen({ job, onConfirm }) {
         <button
           id="flip-confirm-btn"
           onClick={handleConfirm}
-          disabled={confirming}
+          disabled={confirming || success}
           className={`w-full py-6 rounded-2xl text-xl font-black uppercase tracking-wider
             transition-all duration-200 relative overflow-hidden
             shadow-2xl shadow-orange-900/70
-            ${confirming
+            ${success
+              ? 'bg-green-600 text-white shadow-green-900/70'
+              : confirming
               ? 'bg-orange-800 text-orange-300 scale-95'
               : 'bg-gradient-to-b from-orange-400 to-orange-600 text-white active:scale-95 hover:from-orange-300 hover:to-orange-500'
             }`}
         >
           {/* Shine overlay */}
-          {!confirming && (
+          {!confirming && !success && (
             <span className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent pointer-events-none" />
           )}
           <span className="relative flex items-center justify-center gap-3">
-            {confirming ? (
+            {success ? (
+              <>
+                <CheckCheck className="w-6 h-6" />
+                Success!
+              </>
+            ) : confirming ? (
               <>
                 <RefreshCw className="w-6 h-6 animate-spin" />
                 Sending Job…

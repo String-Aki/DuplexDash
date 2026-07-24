@@ -10,7 +10,8 @@ const exec = (command, callback) => {
     logger.log(`[SYS EXEC] ${command}`);
     return _exec(command, callback);
 };
-const { connectToWhatsApp } = require('./whatsapp');
+const { connectToTelegram } = require('./telegram');
+const { printFile, cancelPrintJob } = require('./hardware');
 
 // Fix Directory Crash: Ensure uploads exists synchronously
 const uploadsDir = path.join(__dirname, 'uploads');
@@ -22,8 +23,8 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Start WhatsApp Listener
-connectToWhatsApp();
+// Start Telegram Listener
+connectToTelegram();
 
 // --- API CONTRACT ---
 
@@ -55,9 +56,9 @@ app.post('/api/print/:id', (req, res) => {
         
         if (job.status === 'pending') {
             // STEP 1: Print Odd Pages
-            exec(`lp -d Canon_G3010 "${job.odd_filepath}"`, (err, stdout, stderr) => {
-                if (err) {
-                    logger.error(`Hardware print error (odd): ${err}`);
+            printFile(job.odd_filepath, job.copies || 1).then(({ success, error }) => {
+                if (!success) {
+                    logger.error(`Hardware print error (odd): ${error}`);
                     // For safety, even if it fails, we might still proceed or return error. 
                     // Let's assume it succeeds for the sake of the dashboard demo if hardware isn't connected.
                 }
@@ -69,9 +70,9 @@ app.post('/api/print/:id', (req, res) => {
             
         } else if (job.status === 'waiting_for_flip') {
             // STEP 2: Print Even Pages
-            exec(`lp -d Canon_G3010 "${job.even_filepath}"`, (err, stdout, stderr) => {
-                if (err) {
-                    logger.error(`Hardware print error (even): ${err}`);
+            printFile(job.even_filepath, job.copies || 1).then(({ success, error }) => {
+                if (!success) {
+                    logger.error(`Hardware print error (even): ${error}`);
                 }
 
                 // Calculate inventory usage
@@ -112,10 +113,14 @@ app.get('/api/stats', (req, res) => {
         const settings = db.prepare("SELECT * FROM Settings WHERE id = 1").get();
         
         // Calculate total revenue from printed jobs
-        const stats = db.prepare("SELECT SUM(printed_pages) as total_pages_printed FROM PrintJobs WHERE status = 'printed'").get();
+        const statsBW = db.prepare("SELECT SUM(printed_pages) as total_pages_printed FROM PrintJobs WHERE status = 'printed' AND color_mode = 'BW'").get();
+        const statsColor = db.prepare("SELECT SUM(printed_pages) as total_pages_printed FROM PrintJobs WHERE status = 'printed' AND color_mode = 'Color'").get();
         
-        const totalPages = stats.total_pages_printed || 0;
-        const totalRevenueLKR = totalPages * settings.lkr_price_per_page;
+        const totalPagesBW = statsBW.total_pages_printed || 0;
+        const totalPagesColor = statsColor.total_pages_printed || 0;
+        const totalPages = totalPagesBW + totalPagesColor;
+        
+        const totalRevenueLKR = (totalPagesBW * settings.lkr_price_per_page_bw) + (totalPagesColor * settings.lkr_price_per_page_color);
 
         res.json({
             success: true,
@@ -124,7 +129,8 @@ app.get('/api/stats', (req, res) => {
                 totalPagesPrinted: totalPages,
                 paperInventory: settings.paper_inventory,
                 inkLevel: settings.ink_level,
-                pricePerPageLKR: settings.lkr_price_per_page
+                pricePerPageBWLKR: settings.lkr_price_per_page_bw,
+                pricePerPageColorLKR: settings.lkr_price_per_page_color
             }
         });
     } catch (error) {
@@ -137,21 +143,22 @@ app.get('/api/stats', (req, res) => {
  * Updates LKR prices and inventory
  */
 app.post('/api/settings', (req, res) => {
-    const { lkr_price_per_page, paper_inventory, ink_level } = req.body;
+    const { lkr_price_per_page_bw, lkr_price_per_page_color, paper_inventory, ink_level } = req.body;
 
     try {
         // Get current settings to only update provided fields
         const current = db.prepare("SELECT * FROM Settings WHERE id = 1").get();
         
-        const newPrice = lkr_price_per_page !== undefined ? lkr_price_per_page : current.lkr_price_per_page;
+        const newPriceBW = lkr_price_per_page_bw !== undefined ? lkr_price_per_page_bw : current.lkr_price_per_page_bw;
+        const newPriceColor = lkr_price_per_page_color !== undefined ? lkr_price_per_page_color : current.lkr_price_per_page_color;
         const newPaper = paper_inventory !== undefined ? paper_inventory : current.paper_inventory;
         const newInk = ink_level !== undefined ? ink_level : current.ink_level;
 
         db.prepare(`
             UPDATE Settings 
-            SET lkr_price_per_page = ?, paper_inventory = ?, ink_level = ? 
+            SET lkr_price_per_page_bw = ?, lkr_price_per_page_color = ?, paper_inventory = ?, ink_level = ? 
             WHERE id = 1
-        `).run(newPrice, newPaper, newInk);
+        `).run(newPriceBW, newPriceColor, newPaper, newInk);
 
         res.json({ success: true, message: "Settings updated successfully." });
     } catch (error) {

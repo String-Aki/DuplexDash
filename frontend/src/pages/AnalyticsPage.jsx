@@ -85,7 +85,7 @@ export default function AnalyticsPage() {
               <StatCard
                 label="Total Revenue"
                 value={LKR(stats.totalRevenueLKR)}
-                sub={`${stats.totalPagesPrinted.toLocaleString()} pages @ ₨${stats.pricePerPageLKR}/pg`}
+                sub={`${stats.totalPagesPrinted.toLocaleString()} pages total`}
                 icon="📈"
                 accent="green"
                 size="lg"
@@ -149,9 +149,9 @@ export default function AnalyticsPage() {
                 accent="brand"
               />
               <StatCard
-                label="Price / Page"
-                value={`₨ ${stats.pricePerPageLKR}`}
-                sub="Current rate"
+                label="Prices (B&W / Color)"
+                value={`₨ ${stats.pricePerPageBWLKR} / ₨ ${stats.pricePerPageColorLKR}`}
+                sub="Current rates"
                 icon="🏷️"
                 accent="purple"
               />

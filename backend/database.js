@@ -42,11 +42,21 @@ function initDB() {
         // Columns already exist
     }
 
-    // Settings table: tracking inventory and LKR financial metrics
+    // Settings table migration (recreate for clean schema)
+    try {
+        db.prepare("SELECT lkr_price_per_page FROM Settings LIMIT 1").get();
+        // If this succeeds, the old column exists. We need to drop and recreate.
+        db.exec(`DROP TABLE Settings`);
+        console.log('Dropped old Settings table for clean schema migration.');
+    } catch (e) {
+        // Table doesn't exist or column doesn't exist, proceed safely
+    }
+
     db.exec(`
         CREATE TABLE IF NOT EXISTS Settings (
             id INTEGER PRIMARY KEY CHECK (id = 1), -- Ensure only one settings row
-            lkr_price_per_page REAL NOT NULL,
+            lkr_price_per_page_bw REAL NOT NULL,
+            lkr_price_per_page_color REAL NOT NULL,
             paper_inventory INTEGER NOT NULL,
             ink_level REAL NOT NULL -- Percentage (0.0 to 100.0)
         )
@@ -55,9 +65,9 @@ function initDB() {
     // Seed default settings if none exist
     const settingsCount = db.prepare('SELECT COUNT(*) as count FROM Settings').get();
     if (settingsCount.count === 0) {
-        const stmt = db.prepare('INSERT INTO Settings (id, lkr_price_per_page, paper_inventory, ink_level) VALUES (?, ?, ?, ?)');
-        // Defaults: 10 LKR per page, 500 sheets of paper, 100% ink
-        stmt.run(1, 10.0, 500, 100.0);
+        const stmt = db.prepare('INSERT INTO Settings (id, lkr_price_per_page_bw, lkr_price_per_page_color, paper_inventory, ink_level) VALUES (?, ?, ?, ?, ?)');
+        // Defaults: 10 LKR BW, 25 LKR Color, 500 sheets of paper, 100% ink
+        stmt.run(1, 10.0, 25.0, 500, 100.0);
         console.log('Database seeded with default settings.');
     }
 }
